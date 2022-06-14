@@ -110,14 +110,43 @@ namespace PakArchive
         /// <returns>Массив байтов данных элемента архива</returns>
         public byte[] ReadEntryData(PakEntry entry)
         {
-            int offsetIndex = Array.IndexOf<PakEntry>(Contents, entry);
+            if(TrySeekEntryStart(entry))
+            {
+                return pakReader.ReadBytes(entry.Size);
+            }
+            else
+            {
+                throw new PakException("Incorrect archive entry");
+            }
+        }
 
+        // Попробовать установить указатель чтения на начало данных PAK элемента
+        private bool TrySeekEntryStart(PakEntry entry)
+        {
+            int offsetIndex = Array.IndexOf<PakEntry>(Contents, entry);
+            
             if(offsetIndex > -1)
             {
                 int entryDataOffset = entryOffsets[offsetIndex];
-
                 pakReader.BaseStream.Seek(entryDataOffset, SeekOrigin.Begin);
-                return pakReader.ReadBytes(entry.Size);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Открыть поток данных элемента на чтение
+        /// </summary>
+        /// <param name="entry">Элемент архива PAK</param>
+        /// <returns>Поток данных элемента</returns>
+        public Stream OpenEntryStream(PakEntry entry)
+        {
+            if(TrySeekEntryStart(entry))
+            {
+                return new PakEntryStream(pakReader.BaseStream, entry);
             }
             else
             {
