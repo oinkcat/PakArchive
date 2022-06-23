@@ -10,11 +10,11 @@ namespace PakArchive
     /// </summary>
     public class PakFile : IDisposable
     {
-        private const int EntryInfoSize = 64;
+        internal const string PakSignature = "PACK";
 
-        private const int EntryNameLength = 56;
+        internal const int EntryInfoSize = 64;
 
-        private const string PakSignature = "PACK";
+        internal const int EntryNameLength = 56;
 
         private BinaryReader pakReader;
 
@@ -37,6 +37,19 @@ namespace PakArchive
         /// </summary>
         public PakEntry[] Contents { get; private set; }
 
+        /// <summary>
+        /// Создать архив PAK из файлов каталога
+        /// </summary>
+        /// <param name="dirPath">Путь к каталогу для архивирования</param>
+        /// <returns>Созданный архив PAK (неоткрытый)</returns>
+        public static PakFile CreateFromDirectory(string dirPath)
+        {
+            var packer = new PakArchiver(dirPath);
+            packer.Pack();
+
+            return new PakFile(packer.PakArchivePath);
+        }
+
         public PakFile(string fileName)
         {
             FileName = fileName;
@@ -47,7 +60,7 @@ namespace PakArchive
         /// </summary>
         public void Open()
         {
-            pakReader = new BinaryReader(new FileStream(FileName, FileMode.Open));
+            pakReader = new BinaryReader(File.OpenRead(FileName));
 
             try
             {

@@ -7,11 +7,13 @@ namespace PakArchive.Tests
     /// <summary>
     /// Тестирование операций с файлом архива PAK
     /// </summary>
-    public class PakFileTets
+    public class PakFileTests
     {
         private const string TestArchivePath = @"D:\Games\Quake 2\baseq2\pak0.pak";
 
         private const string TestOutputDir = @"C:\Temp";
+
+        private const string TestSourceDir = @"..\..\..\TestData";
 
         /// <summary>
         /// Тестирование возможности открытия корректных PAK-файлов
@@ -28,6 +30,9 @@ namespace PakArchive.Tests
             Assert.NotEmpty(testPak.Contents);
         }
 
+        /// <summary>
+        /// Тестирование извлечения случайного файла
+        /// </summary>
         [Fact]
         public void TestExtractRandomEntry()
         {
@@ -46,6 +51,9 @@ namespace PakArchive.Tests
             Assert.NotEmpty(entryData);
         }
 
+        /// <summary>
+        /// Тестирование чтения потока случайного файла
+        /// </summary>
         [Fact]
         public void TestReadRandomEntryStream()
         {
@@ -58,23 +66,25 @@ namespace PakArchive.Tests
             var rng = new Random();
             var entryToRead = testPak.Contents[rng.Next(testPak.Contents.Length)];
 
-            using(var entryStream = testPak.OpenEntryStream(entryToRead))
+            using var entryStream = testPak.OpenEntryStream(entryToRead);
+
+            int totalBytesRead = 0;
+            int bytesRead = 0;
+            var buffer = new byte[BufferSize];
+
+            do
             {
-                int totalBytesRead = 0;
-                int bytesRead = 0;
-                var buffer = new byte[BufferSize];
-
-                do
-                {
-                    bytesRead = entryStream.Read(buffer, 0, buffer.Length);
-                    totalBytesRead += bytesRead;
-                }
-                while (bytesRead > 0);
-
-                Assert.Equal(entryToRead.Size, totalBytesRead);
+                bytesRead = entryStream.Read(buffer, 0, buffer.Length);
+                totalBytesRead += bytesRead;
             }
+            while (bytesRead > 0);
+
+            Assert.Equal(entryToRead.Size, totalBytesRead);
         }
 
+        /// <summary>
+        /// Проверить, что потоковое чтение и извлечение выдают те же данные
+        /// </summary>
         [Fact]
         public void VerifyEntryReadsCorrectly()
         {
@@ -107,6 +117,20 @@ namespace PakArchive.Tests
             {
                 Assert.Equal(entryContetnsToTest[i], entryContentsWhole[i]);
             }
+        }
+
+        /// <summary>
+        /// Тестирование создания архива PAK
+        /// </summary>
+        [Fact]
+        public void TestCreatePakArchive()
+        {
+            using var createdPakArchive = PakFile.CreateFromDirectory(TestSourceDir);
+
+            createdPakArchive.Open();
+
+            Assert.True(createdPakArchive.IsOpen);
+            Assert.NotEmpty(createdPakArchive.Contents);
         }
     }
 }
