@@ -25,11 +25,14 @@ namespace PakArchive
         /// </summary>
         public override bool CanRead => entryPosition < OpenEntry.Size;
 
+        /// <summary>
+        /// Число доступных байт для чтения
+        /// </summary>
+        public override long Length => OpenEntry.Size;
+
         public override bool CanSeek => true;
 
         public override bool CanWrite => false;
-
-        public override long Length => throw new NotImplementedException();
 
         /// <summary>
         /// Позиция чтения внутри PAK элемента

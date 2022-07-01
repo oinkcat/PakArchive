@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PakUtil": {
+      "commandName": "Project",
+      "commandLineArgs": "-u \"C:\\Temp\\logs.pak\""
+    }
+  }
+}

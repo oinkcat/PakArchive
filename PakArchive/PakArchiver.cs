@@ -26,6 +26,11 @@ namespace PakArchive
         /// </summary>
         public string PakArchivePath { get; private set; }
 
+        /// <summary>
+        /// Индикация прогресса архивирования файлов
+        /// </summary>
+        public event EventHandler<PakProgressEventArgs> ProgressChanged;
+
         public PakArchiver(string dirPath)
         {
             dirToPackPath = dirPath;
@@ -108,13 +113,26 @@ namespace PakArchive
         // Записать данные файлов
         private void WriteFilesData()
         {
+            int numProcessed = 0;
+            int numTotal = entriesToPack.Count;
+
             foreach((FileInfo fi, PakEntry _) in entriesToPack)
             {
                 using (var fileStream = fi.OpenRead())
                 {
+                    var progressInfo = new PakProgressEventArgs(numProcessed, numTotal)
+                    {
+                        CurrentFileName = fi.Name
+                    };
+                    ProgressChanged?.Invoke(this, progressInfo);
+
                     fileStream.CopyTo(pakWriter.BaseStream);
                 }
+
+                numProcessed++;
             }
+
+            ProgressChanged?.Invoke(this, new PakProgressEventArgs(numTotal, numTotal));
         }
     }
 }
