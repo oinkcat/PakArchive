@@ -26,6 +26,24 @@ namespace PakArchive.Tests
             testPak.Open();
 
             Assert.True(testPak.IsOpen);
+            Assert.True(testPak.IsFromFile);
+            Assert.NotNull(testPak.Contents);
+            Assert.NotEmpty(testPak.Contents);
+        }
+
+        /// <summary>
+        /// Тестирование открытия корректного PAK-архива из потока данных
+        /// </summary>
+        [Fact]
+        public void TestOpenCorrectArchiveStream()
+        {
+            using var archiveStream = File.OpenRead(TestArchivePath);
+            using var testPak = new PakFile(archiveStream);
+
+            testPak.Open();
+
+            Assert.True(testPak.IsOpen);
+            Assert.False(testPak.IsFromFile);
             Assert.NotNull(testPak.Contents);
             Assert.NotEmpty(testPak.Contents);
         }
@@ -113,10 +131,7 @@ namespace PakArchive.Tests
                 while (bytesRead > 0);
             }
 
-            for(int i = 0; i < entryToRead.Size; i++)
-            {
-                Assert.Equal(entryContetnsToTest[i], entryContentsWhole[i]);
-            }
+            Assert.Equal(entryContentsWhole, entryContetnsToTest);
         }
 
         /// <summary>

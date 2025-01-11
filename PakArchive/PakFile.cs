@@ -16,6 +16,8 @@ namespace PakArchive
 
         internal const int EntryNameLength = 56;
 
+        private readonly Stream dataStreamToRead;
+
         private BinaryReader pakReader;
 
         private int[] entryOffsets;
@@ -38,6 +40,11 @@ namespace PakArchive
         public PakEntry[] Contents { get; private set; }
 
         /// <summary>
+        /// Архив открыт из файла
+        /// </summary>
+        public bool IsFromFile => !String.IsNullOrEmpty(FileName);
+
+        /// <summary>
         /// Создать архив PAK из файлов каталога
         /// </summary>
         /// <param name="dirPath">Путь к каталогу для архивирования</param>
@@ -54,13 +61,22 @@ namespace PakArchive
         {
             FileName = fileName;
         }
+
+        public PakFile(Stream pakDataStream)
+        {
+            dataStreamToRead = pakDataStream;
+        }
         
         /// <summary>
         /// Открыть файл и прочитать содержимое
         /// </summary>
         public void Open()
         {
-            pakReader = new BinaryReader(File.OpenRead(FileName));
+            var pakInputStream = (dataStreamToRead == null)
+                ? File.OpenRead(FileName)
+                : dataStreamToRead;
+
+            pakReader = new BinaryReader(pakInputStream);
 
             try
             {
